@@ -1,0 +1,32 @@
+<?php
+// $Id$
+
+$services = array (
+  'blogger' => "http://www.blogger.com/blog-this.g?&u=%s&t=%s",
+  'delicious' => "http://del.icio.us/post?url=%s&title=%s",
+  'digg' => "http://digg.com/submit?phase=2&url=%s&title=%s",
+  'facebook' => "http://www.facebook.com/sharer.php?u=%s&t=%s",
+  //'flickr' => "",
+  //'friendfeed' => "",
+  //'friendster' => "",
+  'furl' => "http://www.furl.net/storeIt.jsp?u=%s&t=%s",
+  'google' => "http://www.google.com/bookmarks/mark?op=add&bkmk=%s&title=%s",
+  //'lastfm' => "",
+  'linkedin' => "http://www.linkedin.com/shareArticle?mini=true&url=%s&title=%s",
+  //'livejournal' => "",
+  'magnolia' => "http://ma.gnolia.com/bookmarklet/add?url=%s&title=%s",
+  'mixx' => "http://www.mixx.com/submit?page_url=%s&title=%s",
+  'myspace' => "http://www.myspace.com/Modules/PostTo/Pages/?u=%s&t=%s",
+  //'netvibes' => "",
+  'newsvine' => "http://www.newsvine.com/_tools/seed&save?u=%s&h=%s",
+  //'picasa' => "",
+  'reddit' => "http://reddit.com/submit?url=%s&title=%s",
+  'stumbleupon' => "http://www.stumbleupon.com/submit?url=%s&title=%s",
+  'technorati' => "http://technorati.com/cosmos/search.html?url=%s",
+  'twitter' => "http://twitter.com/home?status=%s",
+  //'vimeo' => "",
+  //'webshots' => "",
+  //'wordpress' => "",
+  'yahoo' => "http://myweb2.search.yahoo.com/myresults/bookmarklet?u=%s&t=%s",
+  //'yelp' => "",
+);

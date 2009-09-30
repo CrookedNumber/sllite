@@ -1,0 +1,4 @@
+; $Id$
+name = Service links lite
+description = Add Digg, del.icio.us, reddit, Technorati etc. links to nodes. Lite version
+core = 6.x

@@ -1,0 +1,7 @@
+/* $Id */
+
+.item-list ul.sllite li{
+  display: inline;
+  background-image: none;
+  margin: 0;
+}

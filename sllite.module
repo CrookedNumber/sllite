@@ -1,0 +1,203 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * A module that adds Digg, del.icio.us, reddit, Technorati etc. links to nodes. Lite version.
+ */
+ 
+/**
+ * Implementation of hook_init().
+ */
+function sllite_init() {
+  drupal_add_css(drupal_get_path('module', 'sllite') . '/sllite.css');
+}
+
+/**
+ * Implementation of hook_help().
+ */
+function sllite_help($path, $arg) {
+
+}
+
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function sllite_menu() {
+  $items = array();
+  $items['admin/settings/service_links_lite'] = array(
+    'title' => 'Service links lite',
+    'description' => 'Control which service links should be active.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('sllite_settings_form'),
+    'access arguments' => array('administer service links lite'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function sllite_perm() {
+  return array('administer service links lite');
+}
+
+function sllite_settings_form() {
+  require 'sllite.inc.php';
+  
+  $keys = array_keys($services);
+  $service_list = drupal_map_assoc($keys);
+  $enabled_services = variable_get('sllite_services_enabled', array());
+  
+  $form = array('#tree' => TRUE);
+  
+  $form['icon_size'] = array(
+    '#type' => 'radios',
+    '#title' => t('Choose your icon size'),
+    '#default_value' => variable_get('sllite_icon_size', '16'),
+    '#options' => array(16 =>t ('16x16'), 24 => t('24x24'), 48 => t('48x48'), 60=>t('60x60')),
+    '#description' => t('desc.'),
+  );
+  
+  $img_path = base_path() . drupal_get_path('module', 'sllite') . '/images/16/';
+  
+  foreach ($service_list as $service) {
+    
+    $form[$service]['name'] = array(
+      '#value' => check_plain($service)
+    );
+    
+    $form[$service]['image'] = array(
+      '#value' => '<img src="' . $img_path . $service . '.png" />',
+    );
+    
+    $form[$service]['enabled'] = array(
+      '#title' => t('Enabled'),
+      '#type' => 'checkbox',
+      '#default_value' => (int)array_key_exists($service, $enabled_services),
+    );
+    
+    $form[$service]['weight'] = array(
+      '#type' => 'weight',
+      '#delta' => 10,
+      '#default_value' => isset($enabled_services[$service]) ? $enabled_services[$service] : 0,
+      '#attributes' => array('class' => 'sllite-weight')
+    );  
+  }
+  
+  
+  $form['submit'] = array(
+		'#type' => 'submit',
+		'#value' => t('Submit'),
+	);
+  return $form;
+}
+
+/**
+ * Handle post-validation form submission.
+ */
+function sllite_settings_form_submit($form, &$form_state) {
+  require 'sllite.inc.php';
+  $enabled = array();
+  foreach ($form_state['values'] as $key => $value) {
+    if (array_key_exists($key, $services) && $value['enabled']) {
+      $enabled[$key] = $value['weight'];
+    }
+  }
+  asort($enabled);
+  variable_set('sllite_icon_size', $form_state['values']['icon_size']);
+  variable_set('sllite_services_enabled', $enabled);
+  drupal_set_message(t('Your changes have been saved.'));
+}
+
+/**
+ * Implementation of hook_block().
+ */
+function sllite_block($op = 'list', $delta = 0, $edit = array()) {
+  switch ($op) {
+    case 'list':
+      $blocks[0]['info'] = t('Service Links Lite');
+      $blocks[0]['status'] = FALSE;
+      $blocks[0]['title'] = t('Share this page:');
+      return $blocks;
+    case 'view':
+      if ($delta == 0) {
+        $block['subject'] = t('Share this page:');
+        require 'sllite.inc.php';
+        $path = base_path() . drupal_get_path('module', 'sllite');
+        $service_links_enabled = variable_get('sllite_services_enabled', array());
+        $icon_size = variable_get('sllite_icon_size', '16');
+        $url = url($_GET['q'], array('absolute' => TRUE));
+        $title = drupal_get_title();
+        if (!$title) {
+          $title = variable_get('site_name', '');
+        } 
+        foreach ($service_links_enabled as $k=>$weight) {
+          $alt = $k . ' ' . t('icon');
+          $href = explode('?', $services[$k]);
+          $query = sprintf($href[1], $url, $title);
+          $base = $href[0];
+          $link_title = t('Share this page using ') . $k;
+          $img_path = $path . '/images/' . $icon_size . '/' . $k . '.png';
+          $links[] =  l('<img alt="' . $alt . '" src="' . $img_path . '" />', $base, array('html' => TRUE, 'absolute' => TRUE, 'query' => $query, 'attributes' => array('title' => $link_title)));
+          $block['content'] = theme('item_list', $links, NULL, 'ul', array('class'=>'sllite'));
+        }
+      }
+      return $block;    
+    }
+
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function sllite_theme() {
+	return array(
+		'sllite_settings_form' => array('arguments' => array('form' => NULL),),
+	);
+}
+
+function theme_sllite_settings_form($form) {
+  global $theme_key;
+  drupal_add_tabledrag('sllite-admin', 'order', 'sibling', 'sllite-weight');
+  // Build rows
+  $rows = array();
+  
+  foreach (element_children($form) as $key) {
+    // Generate block row
+    if (isset($form[$key]['name'])) {
+      $row = array(
+        'data' => array (
+          'name' => drupal_render($form[$key]['name']),
+          'image' => drupal_render($form[$key]['image']),
+          'enabled' => drupal_render($form[$key]['enabled']),
+          'weight' => drupal_render($form[$key]['weight']),
+        ),
+        'class' => 'draggable',
+      );
+      $row['weight'] = $form[$key]['weight']['#value'];
+      $rows[] = $row;  // to ensure they are in proper order
+    }
+  }
+  
+  usort($rows, '_sllite_cmp_ints');
+  
+  // Finish table
+  $header = array(t('Service'), t(''), t('Enabled'), t('Weight'));
+  $output = drupal_render($form['icon_size']);
+  $output .= theme('table', $header, $rows, array('id' => 'sllite-admin'));
+  $output .= drupal_render($form);
+
+  return $output;
+}
+
+function _sllite_cmp_ints($a,$b) {
+ $c = $a['weight'];
+ $d = $b['weight'];
+ if ($c == $d) return 0;
+ if ($c < $d) return -1;
+ else return 1;
+}

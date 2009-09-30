@@ -1,0 +1,10 @@
+<?php
+// $Id$
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function sllite_uninstall() {
+  variable_del('sllite_services_enabled');
+  variable_del('sllite_icon_size');
+}
