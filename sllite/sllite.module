@@ -122,6 +122,7 @@ function sllite_block($op = 'list', $delta = 0, $edit = array()) {
       $blocks[0]['info'] = t('Service Links Lite');
       $blocks[0]['status'] = FALSE;
       $blocks[0]['title'] = t('Share this page:');
+      $blocks[0]['cache'] = 4; // VITAL that this block is cached PER PAGE
       return $blocks;
     case 'view':
       if ($delta == 0) {
